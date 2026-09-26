@@ -10,7 +10,10 @@
     "serve": "docusaurus serve",
     "typecheck": "tsc",
     "test:render": "node scripts/run-render-tests.mjs",
-    "specs:lint": "redocly lint specs/openapi/*.yaml"
+    "specs:lint": "redocly lint specs/openapi/*.yaml specs/generated/*.yaml",
+    "specs:overlay": "node scripts/apply-overlays.mjs && node scripts/check-overlays.mjs",
+    "docs:gen": "docusaurus gen-api-docs all",
+    "prebuild": "npm run specs:overlay && npm run docs:gen"
   },
   "dependencies": {
     "@docusaurus/core": "3.10.2",
@@ -19,6 +22,8 @@
     "@docusaurus/theme-mermaid": "3.10.2",
     "@mdx-js/react": "3.1.1",
     "clsx": "2.1.1",
+    "docusaurus-plugin-openapi-docs": "5.2.0",
+    "docusaurus-theme-openapi-docs": "5.2.0",
     "mermaid": "12.0.0",
     "prism-react-renderer": "2.4.1",
     "react": "19.3.0",
@@ -31,7 +36,9 @@
     "@playwright/test": "1.63.0",
     "@redocly/cli": "2.54.3",
     "@types/react": "19.3.0",
-    "typescript": "6.0.3"
+    "openapi-format": "1.33.7",
+    "typescript": "6.0.3",
+    "yaml": "2.9.1"
   },
   "browserslist": {
     "production": [

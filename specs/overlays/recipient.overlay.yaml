@@ -1,0 +1,16 @@
+overlay: 1.0.0
+info:
+  title: Data recipient edition
+  version: 1.0.0
+  description: |
+    Produces the edition of each API that data recipients such as Tallowood
+    Budgeting read. It removes every path marked `x-fdsc-audience: holder` and
+    labels the document with its audience.
+actions:
+  - target: $.paths[?(@['x-fdsc-audience'] == 'holder')]
+    description: Remove holder-only paths.
+    remove: true
+  - target: $.info
+    description: Label the audience.
+    update:
+      x-audience: data-recipient

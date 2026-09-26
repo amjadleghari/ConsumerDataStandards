@@ -21,4 +21,6 @@ other body.
 
 | Section | What it holds |
 |---|---|
+| [API reference](/docs/api/banking/banking-api) | The Common, Banking and Consent APIs, generated from the recipient edition |
+| [Overlays](./overlays/index.md) | How one source document produces each published edition |
 | [Architecture](./architecture/overview.md) | The components and how they connect |

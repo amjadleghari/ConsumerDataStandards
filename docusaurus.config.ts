@@ -18,7 +18,27 @@ const config: Config = {
     mermaid: true,
     hooks: {onBrokenMarkdownLinks: 'throw'},
   },
-  themes: ['@docusaurus/theme-mermaid'],
+  themes: ['@docusaurus/theme-mermaid', 'docusaurus-theme-openapi-docs'],
+
+  plugins: [
+    [
+      'docusaurus-plugin-openapi-docs',
+      {
+        id: 'api',
+        docsPluginId: 'classic',
+        config: Object.fromEntries(
+          ['common', 'banking', 'consent'].map((api) => [
+            api,
+            {
+              specPath: `specs/generated/${api}.recipient.yaml`,
+              outputDir: `docs/api/${api}`,
+              sidebarOptions: {groupPathsBy: 'tag', categoryLinkSource: 'tag'},
+            },
+          ]),
+        ),
+      },
+    ],
+  ],
 
   i18n: {defaultLocale: 'en', locales: ['en']},
 
@@ -26,7 +46,7 @@ const config: Config = {
     [
       'classic',
       {
-        docs: {sidebarPath: './sidebars.ts'},
+        docs: {sidebarPath: './sidebars.ts', docItemComponent: '@theme/ApiItem'},
         blog: false,
         theme: {customCss: './src/css/custom.css'},
       } satisfies Preset.Options,
@@ -44,6 +64,8 @@ const config: Config = {
       title: 'Coralbay Open Data Standard',
       items: [
         {type: 'doc', docId: 'intro', label: 'Introduction', position: 'left'},
+        {type: 'docSidebar', sidebarId: 'api', label: 'API reference', position: 'left'},
+        {type: 'doc', docId: 'overlays/index', label: 'Overlays', position: 'left'},
         {type: 'doc', docId: 'architecture/overview', label: 'Architecture', position: 'left'},
       ],
     },
