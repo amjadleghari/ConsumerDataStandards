@@ -1,0 +1,8 @@
+node_modules/
+build/
+.docusaurus/
+docs/api/
+docs/workflows/generated/
+specs/generated/
+test-results/
+playwright-report/
