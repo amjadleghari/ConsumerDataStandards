@@ -17,7 +17,8 @@
     "arazzo:lint": "redocly lint specs/arazzo/*.arazzo.yaml",
     "arazzo:test": "node scripts/run-arazzo-tests.mjs",
     "validate": "npm run specs:overlay && npm run specs:lint && npm run arazzo:lint && npm run arazzo:test",
-    "test:unit": "node --test tests/unit/*.test.mjs"
+    "test:unit": "node --test tests/unit/*.test.mjs",
+    "prestart": "npm run specs:overlay && npm run docs:gen"
   },
   "dependencies": {
     "@docusaurus/core": "3.10.2",

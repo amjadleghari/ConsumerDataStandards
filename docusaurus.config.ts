@@ -71,6 +71,7 @@ const config: Config = {
         {type: 'doc', docId: 'workflows/index', label: 'Workflows', position: 'left'},
         {type: 'doc', docId: 'contracts/versioning', label: 'Contracts', position: 'left'},
         {type: 'doc', docId: 'architecture/overview', label: 'Architecture', position: 'left'},
+        {type: 'doc', docId: 'maintain/index', label: 'Maintain', position: 'right'},
       ],
     },
     footer: {
