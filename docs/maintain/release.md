@@ -9,14 +9,17 @@ description: How to publish a new version of the site.
 The site version is in `VERSION`, and the history is in `CHANGELOG.md`.
 Change them together, in the same commit.
 
-1. Decide the new version with Semantic Versioning: MAJOR for an incompatible
+1. Run `npm audit`. Upgrade any dependency that has a fix within its major
+   version, and run all checks again. Record in the pull request any advisory
+   that has no non-breaking fix, with the reason it is accepted.
+2. Decide the new version with Semantic Versioning: MAJOR for an incompatible
    change to the standard, MINOR for new content, PATCH for fixes.
-2. Update `VERSION`, and move the `[Unreleased]` entries in `CHANGELOG.md` under
+3. Update `VERSION`, and move the `[Unreleased]` entries in `CHANGELOG.md` under
    a new heading with the version and date.
-3. Open a pull request into `dev`. When CI passes, merge it.
-4. Open a pull request from `dev` into `main`. When CI passes, merge it. The
+4. Open a pull request into `dev`. When CI passes, merge it.
+5. Open a pull request from `dev` into `main`. When CI passes, merge it. The
    merge deploys the site. See [Deployment](./deployment.md).
-5. Tag the merge commit on `main` as `vX.Y.Z`.
+6. Tag the merge commit on `main` as `vX.Y.Z`.
 
 ## Branches
 
