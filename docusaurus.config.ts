@@ -66,6 +66,7 @@ const config: Config = {
         {type: 'doc', docId: 'intro', label: 'Introduction', position: 'left'},
         {type: 'docSidebar', sidebarId: 'api', label: 'API reference', position: 'left'},
         {type: 'doc', docId: 'overlays/index', label: 'Overlays', position: 'left'},
+        {type: 'doc', docId: 'workflows/index', label: 'Workflows', position: 'left'},
         {type: 'doc', docId: 'architecture/overview', label: 'Architecture', position: 'left'},
       ],
     },

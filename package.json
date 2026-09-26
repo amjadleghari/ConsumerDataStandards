@@ -12,11 +12,12 @@
     "test:render": "node scripts/run-render-tests.mjs",
     "specs:lint": "redocly lint specs/openapi/*.yaml specs/generated/*.yaml",
     "specs:overlay": "node scripts/apply-overlays.mjs && node scripts/check-overlays.mjs",
-    "docs:gen": "docusaurus gen-api-docs all",
+    "docs:gen": "docusaurus gen-api-docs all && node scripts/arazzo-to-mdx.mjs",
     "prebuild": "npm run specs:overlay && npm run docs:gen",
     "arazzo:lint": "redocly lint specs/arazzo/*.arazzo.yaml",
     "arazzo:test": "node scripts/run-arazzo-tests.mjs",
-    "validate": "npm run specs:overlay && npm run specs:lint && npm run arazzo:lint && npm run arazzo:test"
+    "validate": "npm run specs:overlay && npm run specs:lint && npm run arazzo:lint && npm run arazzo:test",
+    "test:unit": "node --test tests/unit/*.test.mjs"
   },
   "dependencies": {
     "@docusaurus/core": "3.10.2",

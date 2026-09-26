@@ -17,7 +17,7 @@ produce the editions that people use:
 | Overlay | Produces | Used by |
 |---|---|---|
 | [Data recipient edition](./recipient.md) | `specs/generated/<api>.recipient.yaml` | The [API reference](/docs/api/banking/banking-api) on this site |
-| [Sandbox edition](./sandbox.md) | `specs/generated/<api>.sandbox.yaml` | The mock server that tests the workflows |
+| [Sandbox edition](./sandbox.md) | `specs/generated/<api>.sandbox.yaml` | The mock server that tests the [workflows](../workflows/index.md) |
 
 ```mermaid
 flowchart LR
