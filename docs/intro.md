@@ -21,6 +21,10 @@ other body.
 
 | Section | What it holds |
 |---|---|
+| [Use case](./use-case/overview.md) | The worked example: Alex Sample, Coralbay Mutual Bank and Tallowood Budgeting |
+| [Standards](./standards/principles.md) | Principles, naming and data conventions |
+| [Contracts](./contracts/versioning.md) | Versioning, errors, pagination, security and performance rules |
+| [Workflows](./workflows/index.md) | Arazzo descriptions of the multi-step journeys |
 | [API reference](/docs/api/banking/banking-api) | The Common, Banking and Consent APIs, generated from the recipient edition |
 | [Overlays](./overlays/index.md) | How one source document produces each published edition |
 | [Architecture](./architecture/overview.md) | The components and how they connect |

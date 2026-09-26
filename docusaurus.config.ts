@@ -64,9 +64,12 @@ const config: Config = {
       title: 'Coralbay Open Data Standard',
       items: [
         {type: 'doc', docId: 'intro', label: 'Introduction', position: 'left'},
+        {type: 'doc', docId: 'use-case/overview', label: 'Use case', position: 'left'},
+        {type: 'doc', docId: 'standards/principles', label: 'Standards', position: 'left'},
         {type: 'docSidebar', sidebarId: 'api', label: 'API reference', position: 'left'},
         {type: 'doc', docId: 'overlays/index', label: 'Overlays', position: 'left'},
         {type: 'doc', docId: 'workflows/index', label: 'Workflows', position: 'left'},
+        {type: 'doc', docId: 'contracts/versioning', label: 'Contracts', position: 'left'},
         {type: 'doc', docId: 'architecture/overview', label: 'Architecture', position: 'left'},
       ],
     },
