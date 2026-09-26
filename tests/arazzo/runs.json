@@ -1,0 +1,21 @@
+{
+  "mocks": {"common": 4010, "banking": 4011, "consent": 4012},
+  "runs": [
+    {
+      "file": "specs/arazzo/establish-consent.arazzo.yaml",
+      "inputs": {"authorisationCode": "code-7f3a91", "clientId": "tallowood-budgeting"}
+    },
+    {
+      "file": "specs/arazzo/sync-transactions.arazzo.yaml",
+      "inputs": {
+        "accessToken": "at-4c2e8b0f",
+        "firstPagePrefer": "example=firstPage",
+        "lastPagePrefer": "example=lastPage"
+      }
+    },
+    {
+      "file": "specs/arazzo/revoke-arrangement.arazzo.yaml",
+      "inputs": {"accessToken": "at-4c2e8b0f", "arrangementId": "arr-5520"}
+    }
+  ]
+}
