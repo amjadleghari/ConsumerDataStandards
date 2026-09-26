@@ -22,7 +22,10 @@ export function splitOperationId(ref) {
   return m ? {source: m[1], operationId: m[2]} : {source: null, operationId: ref};
 }
 
-export function renderWorkflow(wf, sourceTitles, opMap, {yamlSource = '', title} = {}) {
+// `opSources` maps each operationId to the Arazzo source description that
+// defines it, so a bare operationId gets its diagram participant from the
+// workflow's own sources, not from the folder its reference page is in.
+export function renderWorkflow(wf, sourceTitles, opMap, {yamlSource = '', title, opSources} = {}) {
   const unresolved = [];
   const rows = [];
   const arrows = [];
@@ -39,7 +42,15 @@ export function renderWorkflow(wf, sourceTitles, opMap, {yamlSource = '', title}
       unresolved.push(`${step.stepId}: ${operationId}`);
       continue;
     }
-    const api = source ?? route.split('/')[3];
+    let api = source;
+    if (!api && opSources) {
+      api = opSources.get(operationId);
+      if (!api) {
+        unresolved.push(`${step.stepId}: ${operationId} is in no source description of this workflow`);
+        continue;
+      }
+    }
+    api ??= route.split('/')[3];
     used.add(api);
     const criteria = (step.successCriteria ?? []).map((c) => code(c.condition)).join('<br/>') || '-';
     const outputs = Object.entries(step.outputs ?? {})
@@ -124,9 +135,15 @@ function main() {
     const yamlSource = fs.readFileSync(path.join('specs/arazzo', file), 'utf8');
     const doc = parse(yamlSource);
     const sourceTitles = {};
+    const opSources = new Map();
     for (const s of doc.sourceDescriptions ?? []) {
       const api = parse(fs.readFileSync(path.join('specs/arazzo', s.url), 'utf8'));
       sourceTitles[s.name] = api.info?.title ?? s.name;
+      for (const item of Object.values(api.paths ?? {})) {
+        for (const op of Object.values(item ?? {})) {
+          if (op && typeof op === 'object' && op.operationId) opSources.set(op.operationId, s.name);
+        }
+      }
     }
     const single = (doc.workflows ?? []).length === 1;
     for (const wf of doc.workflows ?? []) {
@@ -134,6 +151,7 @@ function main() {
         const mdx = renderWorkflow(wf, sourceTitles, opMap, {
           yamlSource,
           title: single ? doc.info?.title : undefined,
+          opSources,
         });
         fs.writeFileSync(path.join(outDir, `${kebab(wf.workflowId)}.mdx`), mdx);
         written++;

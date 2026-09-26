@@ -52,6 +52,20 @@ test('fails on a step without operationId', () => {
   assert.throws(() => renderWorkflow(bad, sources, map), /operationId/);
 });
 
+test('takes the participant from the Arazzo source, not the page folder', () => {
+  const renamed = new Map([['listAccounts', '/docs/api/banking-api/list-accounts']]);
+  const opSources = new Map([['listAccounts', 'banking']]);
+  const one = {...wf, steps: [wf.steps[1]]};
+  const mdx = renderWorkflow(one, sources, renamed, {opSources});
+  assert.match(mdx, /participant banking as Banking API/);
+  assert.doesNotMatch(mdx, /banking-api->>|->>banking-api/);
+});
+
+test('fails when a bare operationId belongs to no source description', () => {
+  const one = {...wf, steps: [wf.steps[1]]};
+  assert.throws(() => renderWorkflow(one, sources, map, {opSources: new Map()}), /no source description/);
+});
+
 test('escapes MDX expression braces outside code', () => {
   const braced = {...wf, summary: 'Uses {$inputs.token} in text'};
   const mdx = renderWorkflow(braced, sources, map);
