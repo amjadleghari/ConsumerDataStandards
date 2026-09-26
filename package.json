@@ -9,7 +9,8 @@
     "clear": "docusaurus clear",
     "serve": "docusaurus serve",
     "typecheck": "tsc",
-    "test:render": "node scripts/run-render-tests.mjs"
+    "test:render": "node scripts/run-render-tests.mjs",
+    "specs:lint": "redocly lint specs/openapi/*.yaml"
   },
   "dependencies": {
     "@docusaurus/core": "3.10.2",
@@ -28,6 +29,7 @@
     "@docusaurus/tsconfig": "3.10.2",
     "@docusaurus/types": "3.10.2",
     "@playwright/test": "1.63.0",
+    "@redocly/cli": "2.54.3",
     "@types/react": "19.3.0",
     "typescript": "6.0.3"
   },

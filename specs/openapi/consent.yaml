@@ -1,0 +1,225 @@
+openapi: 3.1.0
+info:
+  title: Consent API
+  version: 1.0.0
+  summary: Token issue and arrangement revocation for data sharing arrangements.
+  description: |
+    Part of the **Coralbay Open Data Standard**, a fictitious standard owned by
+    the Fictitious Data Standards Council (FDSC).
+
+    This API is deliberately simplified. A real arrangement starts with a
+    browser redirect, in which Alex Sample signs in to Coralbay Mutual Bank and
+    approves the data Tallowood Budgeting asked for. That redirect produces an
+    authorisation code. This document describes only the machine-to-machine
+    steps that follow: exchanging the code for tokens, and revoking the
+    arrangement.
+
+    All organisations, people and values in this document are invented.
+  license:
+    name: MIT
+    identifier: MIT
+  contact:
+    name: FDSC (fictitious)
+    url: https://fdsc.example.com
+servers:
+  - url: https://api.coralbay.example.com/cds-fictitious
+    description: Production (fictitious)
+tags:
+  - name: Tokens
+    description: Access tokens for an arrangement.
+  - name: Arrangements
+    description: The lifecycle of a data sharing arrangement.
+paths:
+  /oauth/token:
+    post:
+      operationId: requestToken
+      summary: Request an access token
+      description: |
+        Exchanges an authorisation code (from the consent redirect) for an
+        access token and the arrangement identifier.
+      tags: [Tokens]
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              required: [grant_type, code, client_id]
+              properties:
+                grant_type:
+                  type: string
+                  enum: [authorization_code]
+                code:
+                  type: string
+                client_id:
+                  type: string
+            examples:
+              tallowood:
+                value:
+                  grant_type: authorization_code
+                  code: code-7f3a91
+                  client_id: tallowood-budgeting
+      responses:
+        '200':
+          description: The tokens for the new arrangement.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TokenResponse'
+              examples:
+                issued:
+                  value:
+                    access_token: at-4c2e8b0f
+                    token_type: Bearer
+                    expires_in: 600
+                    refresh_token: rt-91d7a3c2
+                    cdr_arrangement_id: arr-5520
+                    scope: bank:accounts.basic:read bank:transactions:read
+        '400':
+          $ref: '#/components/responses/InvalidGrant'
+        '500':
+          $ref: '#/components/responses/ServerError'
+  /arrangements/revoke:
+    post:
+      operationId: revokeArrangement
+      summary: Revoke an arrangement
+      description: |
+        Ends a data sharing arrangement. The data recipient calls it when the
+        consumer withdraws consent. Every token issued for the arrangement
+        stops working.
+      tags: [Arrangements]
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: x-fapi-interaction-id
+          in: header
+          required: false
+          description: A correlation identifier. The server echoes it in the response.
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              required: [cdr_arrangement_id]
+              properties:
+                cdr_arrangement_id:
+                  type: string
+            examples:
+              alex:
+                value:
+                  cdr_arrangement_id: arr-5520
+      responses:
+        '204':
+          description: The arrangement is revoked.
+        '401':
+          $ref: '#/components/responses/Unauthorised'
+        '422':
+          $ref: '#/components/responses/UnknownArrangement'
+        '500':
+          $ref: '#/components/responses/ServerError'
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      description: The access token issued for the arrangement.
+  responses:
+    InvalidGrant:
+      description: The authorisation code is not valid.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/OAuthError'
+          examples:
+            expiredCode:
+              value:
+                error: invalid_grant
+                error_description: The authorisation code has expired.
+    Unauthorised:
+      description: The access token is missing, expired or revoked.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          examples:
+            expired:
+              value:
+                errors:
+                  - code: urn:fdsc:error:authorisation:expired
+                    title: Token expired
+                    detail: The access token has expired.
+    UnknownArrangement:
+      description: The arrangement does not exist, or it belongs to another recipient.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          examples:
+            unknown:
+              value:
+                errors:
+                  - code: urn:fdsc:error:field:invalid-arrangement
+                    title: Invalid arrangement
+                    detail: Arrangement arr-0000 is not known.
+    ServerError:
+      description: The server failed to process the request.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          examples:
+            unexpected:
+              value:
+                errors:
+                  - code: urn:fdsc:error:general:unexpected
+                    title: Unexpected error
+                    detail: The request could not be processed.
+  schemas:
+    TokenResponse:
+      type: object
+      required: [access_token, token_type, expires_in, cdr_arrangement_id]
+      properties:
+        access_token:
+          type: string
+        token_type:
+          type: string
+          enum: [Bearer]
+        expires_in:
+          type: integer
+          description: Lifetime of the access token, in seconds.
+        refresh_token:
+          type: string
+        cdr_arrangement_id:
+          type: string
+        scope:
+          type: string
+    OAuthError:
+      type: object
+      required: [error]
+      properties:
+        error:
+          type: string
+        error_description:
+          type: string
+    ErrorResponse:
+      type: object
+      required: [errors]
+      properties:
+        errors:
+          type: array
+          minItems: 1
+          items:
+            type: object
+            required: [code, title, detail]
+            properties:
+              code:
+                type: string
+              title:
+                type: string
+              detail:
+                type: string
