@@ -1,0 +1,75 @@
+arazzo: 1.0.1
+info:
+  title: Establish consent and read accounts
+  version: 1.0.0
+  summary: Tallowood Budgeting turns Alex Sample's consent into an access token, then reads the shared accounts.
+  description: |
+    Before this workflow starts, Alex Sample is redirected from Tallowood
+    Budgeting to Coralbay Mutual Bank, signs in, and approves the data request.
+    Coralbay Mutual Bank then redirects back to Tallowood Budgeting with an
+    authorisation code. That browser redirect is not an API call, so it is not
+    a step here. The workflow begins with the authorisation code as an input.
+sourceDescriptions:
+  - name: common
+    url: ../openapi/common.yaml
+    type: openapi
+  - name: banking
+    url: ../openapi/banking.yaml
+    type: openapi
+  - name: consent
+    url: ../openapi/consent.yaml
+    type: openapi
+workflows:
+  - workflowId: establishConsent
+    summary: Check availability, exchange the authorisation code, read accounts.
+    inputs:
+      type: object
+      required: [authorisationCode, clientId]
+      properties:
+        authorisationCode:
+          type: string
+          description: The code returned by the consent redirect.
+        clientId:
+          type: string
+          description: The data recipient's client identifier.
+    steps:
+      - stepId: checkStatus
+        description: Confirm that Coralbay Mutual Bank's APIs are available.
+        operationId: $sourceDescriptions.common.getStatus
+        parameters:
+          - name: x-v
+            in: header
+            value: '1'
+        successCriteria:
+          - condition: $statusCode == 200
+      - stepId: exchangeCode
+        description: Exchange the authorisation code for an access token.
+        operationId: $sourceDescriptions.consent.requestToken
+        requestBody:
+          contentType: application/x-www-form-urlencoded
+          payload:
+            grant_type: authorization_code
+            code: $inputs.authorisationCode
+            client_id: $inputs.clientId
+        successCriteria:
+          - condition: $statusCode == 200
+        outputs:
+          accessToken: $response.body#/access_token
+          arrangementId: $response.body#/cdr_arrangement_id
+      - stepId: readAccounts
+        description: Read the accounts Alex Sample shared.
+        operationId: $sourceDescriptions.banking.listAccounts
+        parameters:
+          - name: x-v
+            in: header
+            value: '1'
+          - name: Authorization
+            in: header
+            value: Bearer {$steps.exchangeCode.outputs.accessToken}
+        successCriteria:
+          - condition: $statusCode == 200
+        outputs:
+          firstAccountId: $response.body#/data/accounts/0/accountId
+    outputs:
+      arrangementId: $steps.exchangeCode.outputs.arrangementId
+      firstAccountId: $steps.readAccounts.outputs.firstAccountId

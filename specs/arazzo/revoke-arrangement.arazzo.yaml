@@ -1,0 +1,40 @@
+arazzo: 1.0.1
+info:
+  title: Revoke an arrangement
+  version: 1.0.0
+  summary: Alex Sample withdraws consent, and Tallowood Budgeting revokes the arrangement.
+  description: |
+    Alex Sample withdraws consent in the Tallowood Budgeting app. Tallowood
+    Budgeting then calls Coralbay Mutual Bank to revoke the arrangement. After
+    the revocation, every token for the arrangement stops working.
+sourceDescriptions:
+  - name: consent
+    url: ../openapi/consent.yaml
+    type: openapi
+workflows:
+  - workflowId: revokeArrangement
+    summary: Revoke the arrangement identified by its identifier.
+    inputs:
+      type: object
+      required: [accessToken, arrangementId]
+      properties:
+        accessToken:
+          type: string
+          description: An access token for the arrangement.
+        arrangementId:
+          type: string
+          description: The arrangement to revoke, for example `arr-5520`.
+    steps:
+      - stepId: revoke
+        description: Revoke the arrangement.
+        operationId: revokeArrangement
+        parameters:
+          - name: Authorization
+            in: header
+            value: Bearer {$inputs.accessToken}
+        requestBody:
+          contentType: application/x-www-form-urlencoded
+          payload:
+            cdr_arrangement_id: $inputs.arrangementId
+        successCriteria:
+          - condition: $statusCode == 204

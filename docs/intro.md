@@ -1,0 +1,30 @@
+---
+title: Introduction
+sidebar_position: 1
+description: What the Coralbay Open Data Standard is, and how this site is organised.
+---
+
+# Introduction
+
+The Coralbay Open Data Standard is a **fictitious** API standard. It lets a
+consumer share their banking data with an accredited third party. The
+**Fictitious Data Standards Council (FDSC)** owns the standard. The FDSC is not
+a real body.
+
+:::warning Fictitious example
+Every organisation, person, product and value on this site is invented. The site
+is not an official publication of the Data Standards Body, the Treasury, or any
+other body.
+:::
+
+## How this site is organised
+
+| Section | What it holds |
+|---|---|
+| [Use case](./use-case/overview.md) | The worked example: Alex Sample, Coralbay Mutual Bank and Tallowood Budgeting |
+| [Standards](./standards/principles.md) | Principles, naming and data conventions |
+| [Contracts](./contracts/versioning.md) | Versioning, errors, pagination, security and performance rules |
+| [Workflows](./workflows/index.md) | Arazzo descriptions of the multi-step journeys |
+| [API reference](/docs/api/banking/banking-api) | The Common, Banking and Consent APIs, generated from the recipient edition |
+| [Overlays](./overlays/index.md) | How one source document produces each published edition |
+| [Architecture](./architecture/overview.md) | The components and how they connect |

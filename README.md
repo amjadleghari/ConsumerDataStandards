@@ -9,4 +9,14 @@ documentation and Mermaid diagrams, built with Docusaurus.
 > this site is invented. The site is not an official publication of the Data
 > Standards Body, the Treasury, or any other body.
 
-Build and contribute: see CONTRIBUTING.md.
+Published site: <https://amjadleghari.github.io/ConsumerDataStandards/>
+
+## Quick start
+
+```bash
+npm ci
+npm start
+```
+
+Build and contribute: see [CONTRIBUTING.md](CONTRIBUTING.md), and the
+**Maintain** section of the site (source in `docs/maintain/`).

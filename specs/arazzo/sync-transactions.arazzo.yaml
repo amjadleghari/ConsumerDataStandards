@@ -1,0 +1,103 @@
+arazzo: 1.0.1
+info:
+  title: Synchronise transactions
+  version: 1.0.0
+  summary: Tallowood Budgeting reads every page of transactions on Alex Sample's first shared account.
+  description: |
+    The workflow reads the first page of transactions. While the response has
+    `links.next`, it reads the next page. The last page has no `links.next`.
+
+    `firstPagePrefer` and `lastPagePrefer` let a test harness choose which
+    example response a mock server returns, through the `Prefer` header. A
+    production data holder ignores the header, so a client can leave both
+    inputs empty.
+sourceDescriptions:
+  - name: banking
+    url: ../openapi/banking.yaml
+    type: openapi
+workflows:
+  - workflowId: syncTransactions
+    summary: List accounts, then read each page of transactions.
+    inputs:
+      type: object
+      required: [accessToken]
+      properties:
+        accessToken:
+          type: string
+          description: The access token for the arrangement.
+        firstPagePrefer:
+          type: string
+          description: Optional Prefer header value for the first page.
+        lastPagePrefer:
+          type: string
+          description: Optional Prefer header value for the next page.
+    steps:
+      - stepId: listAccounts
+        description: Find the accounts in the arrangement.
+        operationId: listAccounts
+        parameters:
+          - name: x-v
+            in: header
+            value: '1'
+          - name: Authorization
+            in: header
+            value: Bearer {$inputs.accessToken}
+        successCriteria:
+          - condition: $statusCode == 200
+        outputs:
+          accountId: $response.body#/data/accounts/0/accountId
+      - stepId: firstPage
+        description: Read the first page of transactions.
+        operationId: listTransactions
+        parameters:
+          - name: accountId
+            in: path
+            value: $steps.listAccounts.outputs.accountId
+          - name: page
+            in: query
+            value: 1
+          - name: x-v
+            in: header
+            value: '1'
+          - name: Authorization
+            in: header
+            value: Bearer {$inputs.accessToken}
+          - name: Prefer
+            in: header
+            value: $inputs.firstPagePrefer
+        successCriteria:
+          - condition: $statusCode == 200
+        onSuccess:
+          - name: morePages
+            type: goto
+            stepId: nextPage
+            criteria:
+              - context: $response.body
+                condition: $[?(@.links.next)]
+                type: jsonpath
+          - name: noMorePages
+            type: end
+      - stepId: nextPage
+        description: Read the next page, and confirm it is the last one.
+        operationId: listTransactions
+        parameters:
+          - name: accountId
+            in: path
+            value: $steps.listAccounts.outputs.accountId
+          - name: page
+            in: query
+            value: 2
+          - name: x-v
+            in: header
+            value: '1'
+          - name: Authorization
+            in: header
+            value: Bearer {$inputs.accessToken}
+          - name: Prefer
+            in: header
+            value: $inputs.lastPagePrefer
+        successCriteria:
+          - condition: $statusCode == 200
+          - context: $response.body
+            condition: $[?(!@.links.next)]
+            type: jsonpath

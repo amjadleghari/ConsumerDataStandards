@@ -1,0 +1,241 @@
+openapi: 3.1.0
+info:
+  title: Common API
+  version: 1.0.0
+  summary: Status and outage information published by a data holder.
+  description: |
+    Part of the **Coralbay Open Data Standard**, a fictitious standard owned by
+    the Fictitious Data Standards Council (FDSC). Coralbay Mutual Bank publishes
+    this API so that data recipients such as Tallowood Budgeting can check
+    availability before they call other APIs.
+
+    All organisations, people and values in this document are invented.
+  license:
+    name: MIT
+    identifier: MIT
+  contact:
+    name: FDSC (fictitious)
+    url: https://fdsc.example.com
+servers:
+  - url: https://api.coralbay.example.com/cds-fictitious
+    description: Production (fictitious)
+tags:
+  - name: Discovery
+    description: Availability and planned outages.
+paths:
+  /discovery/status:
+    get:
+      operationId: getStatus
+      summary: Get the current status
+      description: Returns the current operational status of the data holder's APIs.
+      tags: [Discovery]
+      security: []
+      parameters:
+        - $ref: '#/components/parameters/XV'
+        - $ref: '#/components/parameters/XFapiInteractionId'
+      responses:
+        '200':
+          description: The current status.
+          headers:
+            x-v:
+              $ref: '#/components/headers/XV'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StatusResponse'
+              examples:
+                operational:
+                  summary: All services operational
+                  value:
+                    data:
+                      status: OK
+                      updateTime: '2026-09-26T09:00:00+10:00'
+                    links:
+                      self: https://api.coralbay.example.com/cds-fictitious/discovery/status
+                    meta: {}
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '406':
+          $ref: '#/components/responses/NotAcceptable'
+        '500':
+          $ref: '#/components/responses/ServerError'
+  /discovery/outages:
+    get:
+      operationId: getOutages
+      summary: List planned outages
+      description: Returns the planned outages that the data holder has scheduled.
+      tags: [Discovery]
+      security: []
+      parameters:
+        - $ref: '#/components/parameters/XV'
+        - $ref: '#/components/parameters/XFapiInteractionId'
+      responses:
+        '200':
+          description: The planned outages.
+          headers:
+            x-v:
+              $ref: '#/components/headers/XV'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OutagesResponse'
+              examples:
+                oneOutage:
+                  summary: One planned outage
+                  value:
+                    data:
+                      outages:
+                        - outageTime: '2026-10-04T01:00:00+10:00'
+                          duration: PT2H
+                          isPartial: false
+                          explanation: Scheduled maintenance of the core ledger.
+                    links:
+                      self: https://api.coralbay.example.com/cds-fictitious/discovery/outages
+                    meta: {}
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '406':
+          $ref: '#/components/responses/NotAcceptable'
+        '500':
+          $ref: '#/components/responses/ServerError'
+components:
+  parameters:
+    XV:
+      name: x-v
+      in: header
+      required: true
+      description: The version of the endpoint that the client requests.
+      schema:
+        type: string
+        pattern: '^[1-9][0-9]*$'
+        example: '1'
+    XFapiInteractionId:
+      name: x-fapi-interaction-id
+      in: header
+      required: false
+      description: A correlation identifier. The server echoes it in the response.
+      schema:
+        type: string
+        format: uuid
+        example: 3f2c8a2e-5b1d-4a55-9d3e-1c2b7a9e4f10
+  headers:
+    XV:
+      description: The version of the endpoint that the server returned.
+      schema:
+        type: string
+        example: '1'
+  responses:
+    BadRequest:
+      description: The request is not valid.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          examples:
+            invalidHeader:
+              value:
+                errors:
+                  - code: urn:fdsc:error:header:invalid
+                    title: Invalid header
+                    detail: The x-v header must be a positive integer.
+    NotAcceptable:
+      description: The server does not support the requested version.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          examples:
+            unsupportedVersion:
+              value:
+                errors:
+                  - code: urn:fdsc:error:header:unsupported-version
+                    title: Unsupported version
+                    detail: Version 9 of this endpoint is not supported.
+    ServerError:
+      description: The server failed to process the request.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          examples:
+            unexpected:
+              value:
+                errors:
+                  - code: urn:fdsc:error:general:unexpected
+                    title: Unexpected error
+                    detail: The request could not be processed.
+  schemas:
+    Links:
+      type: object
+      required: [self]
+      properties:
+        self:
+          type: string
+          format: uri
+    Meta:
+      type: object
+    StatusResponse:
+      type: object
+      required: [data, links, meta]
+      properties:
+        data:
+          type: object
+          required: [status]
+          properties:
+            status:
+              type: string
+              enum: [OK, PARTIAL_FAILURE, UNAVAILABLE, SCHEDULED_OUTAGE]
+            explanation:
+              type: string
+            updateTime:
+              type: string
+              format: date-time
+        links:
+          $ref: '#/components/schemas/Links'
+        meta:
+          $ref: '#/components/schemas/Meta'
+    OutagesResponse:
+      type: object
+      required: [data, links, meta]
+      properties:
+        data:
+          type: object
+          required: [outages]
+          properties:
+            outages:
+              type: array
+              items:
+                type: object
+                required: [outageTime, duration]
+                properties:
+                  outageTime:
+                    type: string
+                    format: date-time
+                  duration:
+                    type: string
+                    description: ISO 8601 duration.
+                  isPartial:
+                    type: boolean
+                  explanation:
+                    type: string
+        links:
+          $ref: '#/components/schemas/Links'
+        meta:
+          $ref: '#/components/schemas/Meta'
+    ErrorResponse:
+      type: object
+      required: [errors]
+      properties:
+        errors:
+          type: array
+          minItems: 1
+          items:
+            type: object
+            required: [code, title, detail]
+            properties:
+              code:
+                type: string
+              title:
+                type: string
+              detail:
+                type: string
