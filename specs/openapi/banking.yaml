@@ -1,0 +1,530 @@
+openapi: 3.1.0
+info:
+  title: Banking API
+  version: 1.0.0
+  summary: Accounts, balances and transactions shared with the consumer's consent.
+  description: |
+    Part of the **Coralbay Open Data Standard**, a fictitious standard owned by
+    the Fictitious Data Standards Council (FDSC). Coralbay Mutual Bank publishes
+    this API. Tallowood Budgeting calls it on behalf of Alex Sample, within an
+    active data sharing arrangement.
+
+    All organisations, people and values in this document are invented.
+  license:
+    name: MIT
+    identifier: MIT
+  contact:
+    name: FDSC (fictitious)
+    url: https://fdsc.example.com
+servers:
+  - url: https://api.coralbay.example.com/cds-fictitious
+    description: Production (fictitious)
+security:
+  - bearerAuth: []
+tags:
+  - name: Accounts
+    description: The consumer's accounts and balances.
+  - name: Transactions
+    description: The transactions on an account.
+  - name: Holder administration
+    description: Operations for the data holder only. They are not part of the recipient edition.
+paths:
+  /banking/accounts:
+    get:
+      operationId: listAccounts
+      summary: List accounts
+      description: Returns the accounts that the consumer shared in the current arrangement.
+      tags: [Accounts]
+      parameters:
+        - $ref: '#/components/parameters/XV'
+        - $ref: '#/components/parameters/XFapiInteractionId'
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/PageSize'
+      responses:
+        '200':
+          description: The shared accounts.
+          headers:
+            x-v:
+              $ref: '#/components/headers/XV'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AccountListResponse'
+              examples:
+                twoAccounts:
+                  summary: Two shared accounts
+                  value:
+                    data:
+                      accounts:
+                        - accountId: acc-001
+                          displayName: Everyday account
+                          productCategory: TRANS_AND_SAVINGS_ACCOUNTS
+                          maskedNumber: xxxx xxxx 4821
+                        - accountId: acc-002
+                          displayName: Rainy day saver
+                          productCategory: TRANS_AND_SAVINGS_ACCOUNTS
+                          maskedNumber: xxxx xxxx 9137
+                    links:
+                      self: https://api.coralbay.example.com/cds-fictitious/banking/accounts
+                    meta:
+                      totalRecords: 2
+                      totalPages: 1
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorised'
+        '406':
+          $ref: '#/components/responses/NotAcceptable'
+        '422':
+          $ref: '#/components/responses/InvalidPage'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+  /banking/accounts/{accountId}/balance:
+    get:
+      operationId: getAccountBalance
+      summary: Get an account balance
+      description: Returns the current and available balance of one shared account.
+      tags: [Accounts]
+      parameters:
+        - $ref: '#/components/parameters/AccountId'
+        - $ref: '#/components/parameters/XV'
+        - $ref: '#/components/parameters/XFapiInteractionId'
+      responses:
+        '200':
+          description: The balance.
+          headers:
+            x-v:
+              $ref: '#/components/headers/XV'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BalanceResponse'
+              examples:
+                everyday:
+                  summary: Balance of the everyday account
+                  value:
+                    data:
+                      accountId: acc-001
+                      currentBalance: '1523.40'
+                      availableBalance: '1498.40'
+                      currency: AUD
+                    links:
+                      self: https://api.coralbay.example.com/cds-fictitious/banking/accounts/acc-001/balance
+                    meta: {}
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorised'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '406':
+          $ref: '#/components/responses/NotAcceptable'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+  /banking/accounts/{accountId}/transactions:
+    get:
+      operationId: listTransactions
+      summary: List transactions
+      description: |
+        Returns the transactions on one shared account, newest first, one page at
+        a time. `links.next` is present while more pages exist, and absent on the
+        last page.
+      tags: [Transactions]
+      parameters:
+        - $ref: '#/components/parameters/AccountId'
+        - $ref: '#/components/parameters/XV'
+        - $ref: '#/components/parameters/XFapiInteractionId'
+        - name: oldest-time
+          in: query
+          required: false
+          description: Only transactions at or after this time are returned.
+          schema:
+            type: string
+            format: date-time
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/PageSize'
+      responses:
+        '200':
+          description: One page of transactions.
+          headers:
+            x-v:
+              $ref: '#/components/headers/XV'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TransactionListResponse'
+              examples:
+                firstPage:
+                  summary: First of two pages
+                  value:
+                    data:
+                      transactions:
+                        - transactionId: txn-1001
+                          accountId: acc-001
+                          postingDateTime: '2026-09-25T14:02:00+10:00'
+                          amount: '-42.50'
+                          currency: AUD
+                          description: Harbourside Grocer
+                    links:
+                      self: https://api.coralbay.example.com/cds-fictitious/banking/accounts/acc-001/transactions?page=1
+                      next: https://api.coralbay.example.com/cds-fictitious/banking/accounts/acc-001/transactions?page=2
+                    meta:
+                      totalRecords: 2
+                      totalPages: 2
+                lastPage:
+                  summary: Second and last page
+                  value:
+                    data:
+                      transactions:
+                        - transactionId: txn-1000
+                          accountId: acc-001
+                          postingDateTime: '2026-09-24T08:15:00+10:00'
+                          amount: '2150.00'
+                          currency: AUD
+                          description: Salary - Wattlegum Studios
+                    links:
+                      self: https://api.coralbay.example.com/cds-fictitious/banking/accounts/acc-001/transactions?page=2
+                    meta:
+                      totalRecords: 2
+                      totalPages: 2
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorised'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '406':
+          $ref: '#/components/responses/NotAcceptable'
+        '422':
+          $ref: '#/components/responses/InvalidPage'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+  /admin/metrics:
+    x-fdsc-audience: holder
+    get:
+      operationId: getHolderMetrics
+      summary: Get operational metrics
+      description: |
+        Returns the data holder's own traffic and availability figures. This
+        operation is for the data holder only. The recipient overlay removes it.
+      tags: [Holder administration]
+      parameters:
+        - $ref: '#/components/parameters/XV'
+      responses:
+        '200':
+          description: The metrics for the current day.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [data]
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      availability:
+                        type: string
+                      requestsToday:
+                        type: integer
+              examples:
+                today:
+                  value:
+                    data:
+                      availability: '0.9995'
+                      requestsToday: 18230
+        '401':
+          $ref: '#/components/responses/Unauthorised'
+        '500':
+          $ref: '#/components/responses/ServerError'
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      description: An access token issued by the Consent API token endpoint.
+  parameters:
+    AccountId:
+      name: accountId
+      in: path
+      required: true
+      description: The identifier of a shared account, for example `acc-001`.
+      schema:
+        type: string
+        pattern: '^acc-[0-9]{3,}$'
+    XV:
+      name: x-v
+      in: header
+      required: true
+      description: The version of the endpoint that the client requests.
+      schema:
+        type: string
+        pattern: '^[1-9][0-9]*$'
+        example: '1'
+    XFapiInteractionId:
+      name: x-fapi-interaction-id
+      in: header
+      required: false
+      description: A correlation identifier. The server echoes it in the response.
+      schema:
+        type: string
+        format: uuid
+        example: 3f2c8a2e-5b1d-4a55-9d3e-1c2b7a9e4f10
+    Page:
+      name: page
+      in: query
+      required: false
+      description: The page to return. The first page is 1.
+      schema:
+        type: integer
+        minimum: 1
+        default: 1
+    PageSize:
+      name: page-size
+      in: query
+      required: false
+      description: The number of records on a page.
+      schema:
+        type: integer
+        minimum: 1
+        maximum: 1000
+        default: 25
+  headers:
+    XV:
+      description: The version of the endpoint that the server returned.
+      schema:
+        type: string
+        example: '1'
+  responses:
+    BadRequest:
+      description: The request is not valid.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          examples:
+            invalidHeader:
+              value:
+                errors:
+                  - code: urn:fdsc:error:header:invalid
+                    title: Invalid header
+                    detail: The x-v header must be a positive integer.
+    Unauthorised:
+      description: The access token is missing, expired or revoked.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          examples:
+            revoked:
+              value:
+                errors:
+                  - code: urn:fdsc:error:authorisation:revoked
+                    title: Arrangement revoked
+                    detail: The consumer withdrew consent for this arrangement.
+    NotFound:
+      description: The account is not shared in this arrangement.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          examples:
+            unknownAccount:
+              value:
+                errors:
+                  - code: urn:fdsc:error:resource:unavailable
+                    title: Unavailable account
+                    detail: Account acc-999 is not shared in this arrangement.
+    NotAcceptable:
+      description: The server does not support the requested version.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          examples:
+            unsupportedVersion:
+              value:
+                errors:
+                  - code: urn:fdsc:error:header:unsupported-version
+                    title: Unsupported version
+                    detail: Version 9 of this endpoint is not supported.
+    InvalidPage:
+      description: The requested page does not exist.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          examples:
+            pageOutOfRange:
+              value:
+                errors:
+                  - code: urn:fdsc:error:field:invalid-page
+                    title: Invalid page
+                    detail: Page 7 was requested, and 2 pages exist.
+    TooManyRequests:
+      description: The client exceeded its traffic threshold.
+      headers:
+        Retry-After:
+          description: The number of seconds to wait before the next request.
+          schema:
+            type: integer
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          examples:
+            throttled:
+              value:
+                errors:
+                  - code: urn:fdsc:error:general:too-many-requests
+                    title: Too many requests
+                    detail: Retry after 30 seconds.
+    ServerError:
+      description: The server failed to process the request.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          examples:
+            unexpected:
+              value:
+                errors:
+                  - code: urn:fdsc:error:general:unexpected
+                    title: Unexpected error
+                    detail: The request could not be processed.
+  schemas:
+    Links:
+      type: object
+      required: [self]
+      properties:
+        self:
+          type: string
+          format: uri
+    PaginatedLinks:
+      type: object
+      required: [self]
+      properties:
+        self:
+          type: string
+          format: uri
+        next:
+          type: string
+          format: uri
+          description: Present while more pages exist.
+    PaginatedMeta:
+      type: object
+      required: [totalRecords, totalPages]
+      properties:
+        totalRecords:
+          type: integer
+        totalPages:
+          type: integer
+    Amount:
+      type: string
+      pattern: '^-?[0-9]+\.[0-9]{2}$'
+      description: A decimal amount with two decimal places, as a string.
+    Account:
+      type: object
+      required: [accountId, displayName, productCategory]
+      properties:
+        accountId:
+          type: string
+        displayName:
+          type: string
+        productCategory:
+          type: string
+          enum: [TRANS_AND_SAVINGS_ACCOUNTS, TERM_DEPOSITS, CRED_AND_CHRG_CARDS]
+        maskedNumber:
+          type: string
+    AccountListResponse:
+      type: object
+      required: [data, links, meta]
+      properties:
+        data:
+          type: object
+          required: [accounts]
+          properties:
+            accounts:
+              type: array
+              items:
+                $ref: '#/components/schemas/Account'
+        links:
+          $ref: '#/components/schemas/PaginatedLinks'
+        meta:
+          $ref: '#/components/schemas/PaginatedMeta'
+    BalanceResponse:
+      type: object
+      required: [data, links, meta]
+      properties:
+        data:
+          type: object
+          required: [accountId, currentBalance, availableBalance, currency]
+          properties:
+            accountId:
+              type: string
+            currentBalance:
+              $ref: '#/components/schemas/Amount'
+            availableBalance:
+              $ref: '#/components/schemas/Amount'
+            currency:
+              type: string
+              example: AUD
+        links:
+          $ref: '#/components/schemas/Links'
+        meta:
+          type: object
+    Transaction:
+      type: object
+      required: [transactionId, accountId, postingDateTime, amount, currency]
+      properties:
+        transactionId:
+          type: string
+        accountId:
+          type: string
+        postingDateTime:
+          type: string
+          format: date-time
+        amount:
+          $ref: '#/components/schemas/Amount'
+        currency:
+          type: string
+        description:
+          type: string
+    TransactionListResponse:
+      type: object
+      required: [data, links, meta]
+      properties:
+        data:
+          type: object
+          required: [transactions]
+          properties:
+            transactions:
+              type: array
+              items:
+                $ref: '#/components/schemas/Transaction'
+        links:
+          $ref: '#/components/schemas/PaginatedLinks'
+        meta:
+          $ref: '#/components/schemas/PaginatedMeta'
+    ErrorResponse:
+      type: object
+      required: [errors]
+      properties:
+        errors:
+          type: array
+          minItems: 1
+          items:
+            type: object
+            required: [code, title, detail]
+            properties:
+              code:
+                type: string
+              title:
+                type: string
+              detail:
+                type: string

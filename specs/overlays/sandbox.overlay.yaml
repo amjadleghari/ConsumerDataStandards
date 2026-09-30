@@ -1,0 +1,19 @@
+overlay: 1.0.0
+info:
+  title: Sandbox edition
+  version: 1.0.0
+  description: |
+    Produces the sandbox edition of each API. It replaces the production
+    server with the fictitious sandbox server. An `update` on `$.servers`
+    would append a server rather than replace it, so the action first removes
+    the list, then sets a new one.
+actions:
+  - target: $.servers
+    description: Remove the production server list.
+    remove: true
+  - target: $
+    description: Set the sandbox server.
+    update:
+      servers:
+        - url: https://sandbox.coralbay.example.com/cds-fictitious
+          description: Sandbox (fictitious)

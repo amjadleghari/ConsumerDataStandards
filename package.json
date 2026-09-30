@@ -1,0 +1,67 @@
+{
+  "name": "coralbay-open-data-standard",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "docusaurus": "docusaurus",
+    "start": "docusaurus start",
+    "build": "docusaurus build",
+    "clear": "docusaurus clear",
+    "serve": "docusaurus serve",
+    "typecheck": "tsc",
+    "test:render": "node scripts/run-render-tests.mjs",
+    "specs:lint": "redocly lint specs/openapi/*.yaml specs/generated/*.yaml",
+    "specs:overlay": "node scripts/apply-overlays.mjs && node scripts/check-overlays.mjs",
+    "docs:gen": "docusaurus gen-api-docs all && node scripts/arazzo-to-mdx.mjs",
+    "prebuild": "npm run specs:overlay && npm run docs:gen",
+    "arazzo:lint": "redocly lint specs/arazzo/*.arazzo.yaml",
+    "arazzo:test": "node scripts/run-arazzo-tests.mjs",
+    "validate": "npm run specs:overlay && npm run specs:lint && npm run arazzo:lint && npm run arazzo:test",
+    "test:unit": "node --test tests/unit/*.test.mjs",
+    "prestart": "npm run specs:overlay && npm run docs:gen"
+  },
+  "dependencies": {
+    "@docusaurus/core": "3.10.2",
+    "@docusaurus/faster": "3.10.2",
+    "@docusaurus/preset-classic": "3.10.2",
+    "@docusaurus/theme-mermaid": "3.10.2",
+    "@mdx-js/react": "3.1.1",
+    "clsx": "2.1.1",
+    "docusaurus-plugin-openapi-docs": "5.2.0",
+    "docusaurus-theme-openapi-docs": "5.2.0",
+    "mermaid": "12.0.0",
+    "prism-react-renderer": "2.4.1",
+    "react": "19.3.0",
+    "react-dom": "19.3.0"
+  },
+  "devDependencies": {
+    "@docusaurus/module-type-aliases": "3.10.2",
+    "@docusaurus/tsconfig": "3.10.2",
+    "@docusaurus/types": "3.10.2",
+    "@playwright/test": "1.63.0",
+    "@redocly/cli": "2.54.3",
+    "@stoplight/prism-cli": "5.16.0",
+    "@types/react": "19.3.0",
+    "openapi-format": "1.33.7",
+    "typescript": "6.0.3",
+    "yaml": "2.9.1"
+  },
+  "browserslist": {
+    "production": [
+      ">0.5%",
+      "not dead",
+      "not op_mini all"
+    ],
+    "development": [
+      "last 3 chrome version",
+      "last 3 firefox version",
+      "last 5 safari version"
+    ]
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "overrides": {
+    "mermaid": "12.0.0"
+  }
+}
